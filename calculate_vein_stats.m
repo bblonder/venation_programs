@@ -79,7 +79,7 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
     adj_edges(logical(eye(size(adj_edges)))) = 0; % set diagonal to zero
     
     [w_mst, ~, ~] = kruskal(edgelist, edgemas); % weight uniformly each edge
-    stat_mst_spanning_tree_ratio = w_mst / sum(edgemas);
+    stat_mst_ratio = w_mst / sum(edgemas);
     
      % get the image characteristic of this radius
 
@@ -141,7 +141,7 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
     
     % network statistics
     index_fevs = find(sum(adj_edges, 1)==1); % freely ending veins have degree one
-    stat_fraction_fev = length(index_fevs) / length(edgeperims); % Nr of singleton edges divided by number of edges
+    stat_fev_ratio = length(index_fevs) / length(edgeperims); % Nr of singleton edges divided by number of edges
     stat_meshedness = (size(edgelist,1) - size(vertexlist,1) + 1) / (2*size(vertexlist,1) - 5);
     
     % apply scaling factors
@@ -162,7 +162,7 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
         'stat_vein_tortuosity_median', stat_vein_tortuosity_median, ... % dimensionless
         'stat_vein_tortuosity_sd', stat_vein_tortuosity_sd, ... % dimensionless
         'stat_vein_tortuosity_n', stat_vein_tortuosity_n, ... %  count
-        'stat_mst_spanning_tree_ratio', stat_mst_spanning_tree_ratio, ... % dimensionless
+        'stat_mst_ratio', stat_mst_ratio, ... % dimensionless
         'stat_areole_elongation_mean', stat_areole_elongation_mean, ... % dimensionless
         'stat_areole_elongation_median', stat_areole_elongation_median, ... % dimensionless
         'stat_areole_elongation_sd', stat_areole_elongation_sd, ... % dimensionless
@@ -177,7 +177,7 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
         'stat_areole_circularity_n', stat_areole_circularity_n, ... % count
         'stat_areole_loopiness', stat_areole_loopiness * px_per_mm^2, ... % mm-2
         'stat_meshedness', stat_meshedness, ... % dimensionless
-        'stat_fraction_fev', stat_fraction_fev ... % dimensionless
+        'stat_fev_ratio', stat_fev_ratio ... % dimensionless
     );
 
     result_other = struct( ...
