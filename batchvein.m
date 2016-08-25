@@ -1,6 +1,6 @@
-function [] = batchvein(basedir, outdir, px_per_mm, med_filt, spur_length_max, color_roi, color_vein)
+function [] = batchvein(basedir, outdir, px_per_mm, med_filt, spur_length_max, color_roi, color_vein, discard_boundary)
     % basedir and outdir should end in slash
-    % e.g. batchvein('demo/', 'demoresults/', 200, 5, 10, [255 255 0], [255 0 0])
+    % e.g. batchvein('demo/', 'demoresults/', 200, 5, 10, [255 255 0], [255 0 0], 1)
     % for 200 dpi images with 5px smoothing, 10px spur length removal, with yellow ROI and red veins
     
     log_filename = 'result_veinstats.csv';
@@ -15,7 +15,7 @@ function [] = batchvein(basedir, outdir, px_per_mm, med_filt, spur_length_max, c
         fprintf('%s %d/%d\n', filecode, i, length(files));
         
         % calculate all statistics
-        [result_table, result_other] = calculate_vein_stats(basedir, filecode, px_per_mm, med_filt, spur_length_max, color_roi, color_vein); % 179 pixels per millimeter, 25 px median smoothing
+        [result_table, result_other] = calculate_vein_stats(basedir, filecode, px_per_mm, med_filt, spur_length_max, color_roi, color_vein, discard_boundary); % 179 pixels per millimeter, 25 px median smoothing
         
         % write out files
         write_header = (i==1);

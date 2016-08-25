@@ -1,4 +1,4 @@
-function [result_table, result_other] = calculate_vein_stats(basedir, filecode, px_per_mm, med_filt, spur_length_max, color_roi, color_vein)
+function [result_table, result_other] = calculate_vein_stats(basedir, filecode, px_per_mm, med_filt, spur_length_max, color_roi, color_vein, discard_boundary)
     x = imread(fullfile([basedir filecode]));
 
     image_veins = (x(:,:,1) == color_vein(1) & x(:,:,2) == color_vein(2) & x(:,:,3) == color_vein(3));
@@ -23,7 +23,7 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
     % reskeletonize after trimming
     image_veins = bwmorph(image_veins, 'skel',Inf);
 
-
+    imshow(image_veins)
 
     imep = bwmorph(image_veins, 'endpoints');
     imbp = bwmorph(image_veins, 'branchpoints');
@@ -64,8 +64,16 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
     %edgelist = edgelist(id_edge_notloop,:);
 
     % draw image fixed
-    [image_veins, image_areoles, image_graph, areoles_CC] = drawimageareoles(image_mask, vertexlist, edgelist, CC);
+    [image_veins, image_areoles, image_graph, areoles_CC] = drawimageareoles(image_mask, vertexlist, edgelist, CC, discard_boundary);
 
+    % do distance transform
+    areoles = regionprops(areoles_CC, 'Image');
+    areoleDistances = zeros(length(areoles), 1);
+    for j=1:length(areoles)
+        distances = bwdist(~(areoles(j).Image));
+        areoleDistances(j) = max(max(distances));
+    end
+    areoleDistances = areoleDistances(isfinite(areoleDistances));
     
     % get the path length divided by the axis length for each edge
     edgeperims = regionprops(CC, 'Perimeter');
@@ -85,6 +93,10 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
 
     % get vein statistics
     stat_vein_density = sum(edgeperims) / bwarea(image_mask);
+    stat_vein_distance_mean = mean(areoleDistances);
+    stat_vein_distance_median = median(areoleDistances);
+    stat_vein_distance_sd = std(areoleDistances);
+    stat_vein_distance_n = length(areoleDistances);
     
     stat_vein_length_mean = mean(edgeperims);
     stat_vein_length_median = median(edgeperims);
@@ -134,6 +146,7 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
 
     % number / area
     stat_areole_loopiness = length(areole_area) / sum(areole_area);
+    stat_areole_loop_index = stat_areole_loopiness ./ stat_vein_density^2;
     
     % area analyzed
     stat_area_analyzed = bwarea(image_mask);
@@ -154,6 +167,10 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
         'stat_area_analyzed', stat_area_analyzed / px_per_mm^2, ... % mm^2
         'stat_num_areoles', stat_num_areoles, ... % dimensionless
         'stat_vein_density', stat_vein_density * px_per_mm, ... % mm-1
+        'stat_vein_distance_mean', stat_vein_distance_mean / px_per_mm, ... % mm
+        'stat_vein_distance_median', stat_vein_distance_median / px_per_mm, ... % mm
+        'stat_vein_distance_sd', stat_vein_distance_sd / px_per_mm, ... % mm
+        'stat_vein_distance_n', stat_vein_distance_n, ... % count
         'stat_vein_length_mean', stat_vein_length_mean / px_per_mm, ... % mm
         'stat_vein_length_median', stat_vein_length_median / px_per_mm, ... % mm
         'stat_vein_length_sd', stat_vein_length_sd / px_per_mm, ... % mm
@@ -176,6 +193,7 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
         'stat_areole_circularity_sd', stat_areole_circularity_sd, ... % dimensionless
         'stat_areole_circularity_n', stat_areole_circularity_n, ... % count
         'stat_areole_loopiness', stat_areole_loopiness * px_per_mm^2, ... % mm-2
+        'stat_areole_loop_index', stat_areole_loop_index, ... % dimensionless
         'stat_meshedness', stat_meshedness, ... % dimensionless
         'stat_fev_ratio', stat_fev_ratio ... % dimensionless
     );

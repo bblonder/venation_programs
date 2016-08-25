@@ -1,4 +1,4 @@
-function [im_veins, im_areoles, im_graph, CCareolestrimmed] = drawimageareoles(image_mask, vertexlist, edgelist, CC) 
+function [im_veins, im_areoles, im_graph, CCareolestrimmed] = drawimageareoles(image_mask, vertexlist, edgelist, CC, discard_boundary) 
     vertex_size = 5; % odd number indicating size of vertex marker (larger erases more small areoles)
 
     % returns imfinal - all veins with radius above threshold, each with
@@ -41,7 +41,7 @@ function [im_veins, im_areoles, im_graph, CCareolestrimmed] = drawimageareoles(i
         [areole_r, areole_c] = ind2sub(CCareoles.ImageSize, CCareoles.PixelIdxList{i});
 
         % if no pixels are a boundary pixel
-        if (~(any(areole_r == 1) || any(areole_r == CCareoles.ImageSize(1)) || any(areole_c == 1) || any(areole_c == CCareoles.ImageSize(2)) ))
+        if (~discard_boundary || (~(any(areole_r == 1) || any(areole_r == CCareoles.ImageSize(1)) || any(areole_c == 1) || any(areole_c == CCareoles.ImageSize(2)) )))
             CCareolestrimmed.PixelIdxList = [ CCareolestrimmed.PixelIdxList, CCareoles.PixelIdxList{i} ];
             CCareolestrimmed.NumObjects = CCareolestrimmed.NumObjects + 1;
         end

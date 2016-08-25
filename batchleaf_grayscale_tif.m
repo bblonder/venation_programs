@@ -7,7 +7,7 @@ function [] = batchleaf_grayscale(directory)
     
     
     
-    files = dir([directory sprintf('*%s', extension)]);
+    files = dir([directory sprintf('*%s', extension)])
     numFiles = numel(files);
 
     for k = 1:numFiles
