@@ -8,7 +8,7 @@ line_color = 'red';
 wd = 'demo/'; % folder that contains the input images
 
 suffix_input = '.jpg'; % filtering suffix of input CSV files
-
+suffix_output = 'coords_scaled'
 
 
 
