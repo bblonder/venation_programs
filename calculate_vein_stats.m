@@ -1,5 +1,5 @@
-function [result_table, result_other] = calculate_vein_stats(basedir, filecode, px_per_mm, med_filt, spur_length_max, color_roi, color_vein, discard_boundary)
-    x = imread(fullfile([basedir filecode]));
+function [result_table, result_other] = calculate_vein_stats(basedir, filecode, px_per_mm, med_filt, spur_length_max, color_roi, color_vein, discard_boundary, plot_image)
+    x = imread(fullfile(basedir, filecode));
 
     image_veins = (x(:,:,1) == color_vein(1) & x(:,:,2) == color_vein(2) & x(:,:,3) == color_vein(3));
     image_mask = image_veins | (x(:,:,1) == color_roi(1) & x(:,:,2) == color_roi(2) & x(:,:,3) == color_roi(3));
@@ -23,8 +23,10 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
     % reskeletonize after trimming
     image_veins = bwmorph(image_veins, 'skel',Inf);
 
-    imshow(image_veins)
-
+    if (plot_image==1)
+        imshow(image_veins)
+    end
+    
     imep = bwmorph(image_veins, 'endpoints');
     imbp = bwmorph(image_veins, 'branchpoints');
     imcp = imep | imbp;
