@@ -12,6 +12,9 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
     % skeletonize
     image_veins = bwmorph(image_veins, 'skel',Inf);
     
+    % clean lonely pixels
+    image_veins = bwmorph(image_veins, 'clean');
+
     % remove spurs
     for (i=1:spur_length_max)
         image_veins = bwmorph(image_veins, 'spur');
@@ -85,11 +88,23 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
     edgetortuosity = edgeperims ./ edgemas;
     
     % find minimum spanning tree (unweighted by distance)
-    adj_edges = sparse([edgelist(:,1) edgelist(:,2)], [edgelist(:,2) edgelist(:,1)], 1, max(edgelist(:)), max(edgelist(:)));
-    adj_edges(logical(eye(size(adj_edges)))) = 0; % set diagonal to zero
+    if (size(edgelist, 1)>0)
+        adj_edges = sparse([edgelist(:,1) edgelist(:,2)], [edgelist(:,2) edgelist(:,1)], 1, max(edgelist(:)), max(edgelist(:)));
+        adj_edges(logical(eye(size(adj_edges)))) = 0; % set diagonal to zero
     
-    [w_mst, ~, ~] = kruskal(edgelist, edgemas); % weight uniformly each edge
-    stat_mst_ratio = w_mst / sum(edgemas);
+        [w_mst, ~, ~] = kruskal(edgelist, edgemas); % weight uniformly each edge
+        stat_mst_ratio = w_mst / sum(edgemas);
+        
+        % network statistics
+        index_fevs = find(sum(adj_edges, 1)==1); % freely ending veins have degree one
+        stat_fev_ratio = length(index_fevs) / length(edgeperims); % Nr of singleton edges divided by number of edges
+        stat_meshedness = (size(edgelist,1) - size(vertexlist,1) + 1) / (2*size(vertexlist,1) - 5);
+
+    else
+        stat_mst_ratio = NaN;
+        stat_fev_ratio = NaN;
+        stat_meshedness = NaN;
+    end
     
      % get the image characteristic of this radius
 
@@ -154,11 +169,7 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
     stat_area_analyzed = bwarea(image_mask);
     stat_num_areoles = areoles_CC.NumObjects;
     
-    % network statistics
-    index_fevs = find(sum(adj_edges, 1)==1); % freely ending veins have degree one
-    stat_fev_ratio = length(index_fevs) / length(edgeperims); % Nr of singleton edges divided by number of edges
-    stat_meshedness = (size(edgelist,1) - size(vertexlist,1) + 1) / (2*size(vertexlist,1) - 5);
-    
+
     % apply scaling factors
     result_table = struct( ...
         'filecode', filecode, ...
