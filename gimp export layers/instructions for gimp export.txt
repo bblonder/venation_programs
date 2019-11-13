@@ -1,0 +1,3 @@
+get Export Layers plugin
+put in GIMP application support folder per install instructions
+settings - 8 bit output, no transparency, compression = 9. save settings. then export layers / repeat.
