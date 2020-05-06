@@ -82,7 +82,7 @@ function [result_table, result_other] = calculate_vein_stats(basedir, filecode, 
     
     % get the path length divided by the axis length for each edge
     edgeperims = regionprops(CC, 'Perimeter');
-    edgeperims = cat(1, edgeperims.Perimeter);
+    edgeperims = cat(1, edgeperims.Perimeter) / 2; % note /2 to avoid double-counting
     edgemas = regionprops(CC, 'MajorAxisLength');
     edgemas = cat(1, edgemas.MajorAxisLength);
     edgetortuosity = edgeperims ./ edgemas;
